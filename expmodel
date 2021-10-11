@@ -1,0 +1,70 @@
+package com.ood.entity;
+
+
+public class ExpModel {
+    private int id;
+    private int first;
+    private int second;
+    private int operate;
+    private String result;
+    private int userId;
+    private String right;
+
+    public ExpModel() {
+    }
+
+    public String getRight() {
+        return right;
+    }
+
+    public void setRight(String right) {
+        this.right = right;
+    }
+
+    public int getId() {
+        return id;
+    }
+
+    public void setId(int id) {
+        this.id = id;
+    }
+
+    public int getFirst() {
+        return first;
+    }
+
+    public void setFirst(int first) {
+        this.first = first;
+    }
+
+    public int getSecond() {
+        return second;
+    }
+
+    public void setSecond(int second) {
+        this.second = second;
+    }
+
+    public int getOperate() {
+        return operate;
+    }
+
+    public void setOperate(int operate) {
+        this.operate = operate;
+    }
+
+    public String getResult() {
+        return result;
+    }
+
+    public void setResult(String result) {
+        this.result = result;
+    }
+
+    public int getUserId() {
+        return userId;
+    }
+
+    public void setUserId(int userId) {
+        this.userId = userId;
+    }
