@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.ood.mapper.UserDao">
+  <resultMap id="BaseResultMap" type="com.ood.entity.UserModel">
+    <id column="id" jdbcType="INTEGER" property="id" />
+    <result column="user_name" jdbcType="VARCHAR" property="userName" />
+    <result column="user_pwd" jdbcType="VARCHAR" property="userPwd" />
+  </resultMap>
+
+  <select id="selectOneByUserNameAndPwd" resultMap="BaseResultMap" parameterType="com.ood.entity.UserModel" >
+    select * from user where user_name = #{userName} and user_pwd = #{userPwd}
+  </select>
+
+  <insert id="insertOne" parameterType="com.ood.entity.UserModel" useGeneratedKeys="true" keyProperty="id">
+    INSERT INTO `user` (`user_name`, `user_pwd`) VALUES (#{userName}, #{userPwd})
+  </insert>
+</mapper>
