@@ -1,0 +1,10 @@
+package com.ood.mapper;
+
+import com.ood.entity.UserModel;
+
+public interface UserDao {
+
+	UserModel selectOneByUserNameAndPwd(UserModel user);
+
+	void insertOne(UserModel user);
+}
