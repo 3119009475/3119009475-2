@@ -1,0 +1,11 @@
+package com.ood.mapper;
+
+import com.ood.entity.ExpModel;
+
+import java.util.List;
+
+public interface ExpDao {
+    void insertOne(ExpModel exp);
+
+    List<ExpModel> selectByUserId(ExpModel exp);
+}
