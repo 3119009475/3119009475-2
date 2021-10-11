@@ -1,0 +1,264 @@
+package com.ood;
+
+import java.io.IOException;
+import java.io.InputStream;
+import java.math.RoundingMode;
+import java.text.NumberFormat;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Random;
+import java.util.Scanner;
+
+import org.apache.ibatis.io.Resources;
+import org.apache.ibatis.session.SqlSession;
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.apache.ibatis.session.SqlSessionFactoryBuilder;
+
+import com.ood.entity.ExpModel;
+import com.ood.entity.UserModel;
+import com.ood.mapper.ExpDao;
+import com.ood.mapper.UserDao;
+
+public class OODTest {
+
+	private static SqlSession session;
+	private static UserModel login;;
+	private static Map<Integer, String> operateMap = new HashMap<Integer, String>();
+
+	public static void main(String[] argvs) {
+		runDbSession();
+
+		// 初始化操作符
+		operateMap.put(0, "+");
+		operateMap.put(1, "-");
+		operateMap.put(2, "*");
+		operateMap.put(3, "/");
+
+		while (true) {
+			System.out.println("1 注册用户");
+			System.out.println("2 用户登录");
+
+			// 键盘输入
+			Scanner scanner = new Scanner(System.in);
+			String next = scanner.next();
+
+			// 选择
+
+			if ("1".equals(next)) {
+				// 用户注册
+				reg();
+				// 继续菜单
+				continue;
+			} else if ("2".equals(next)) {
+				// 用户登录
+				login = login();
+				if (login == null) {
+					// 用户名密码错误，返回菜单
+					System.out.println("用户名或密码错误");
+					continue;
+				}
+			}
+
+			System.out.println("1 开始做题");
+			System.out.println("2 查看做题记录");
+			System.out.println("3 退出");
+
+			// 键盘输入
+			Scanner scanner2 = new Scanner(System.in);
+			String next2 = scanner2.next();
+
+			// 选择
+			if ("1".equals(next2)) {
+				// 做题
+				doWork();
+			} else if ("2".equals(next2)) {
+				// 做题记录
+				history();
+			} else if ("3".equals(next2)) {
+				login = null;
+				continue;
+			}
+		}
+	}
+
+	private static void history() {
+		ExpDao mapper = session.getMapper(ExpDao.class);
+		ExpModel expModel = new ExpModel();
+		expModel.setUserId(login.getId());
+
+		List<ExpModel> list = mapper.selectByUserId(expModel);
+
+		for (int i = 0; i < list.size(); i++) {
+			ExpModel e = list.get(i);
+			System.out.print(
+					e.getFirst() + " " + operateMap.get(e.getOperate()) + " " + e.getSecond() + " = " + e.getResult());
+			System.out.println(" 是否正确：" + e.getRight());
+		}
+	}
+
+	private static void doWork() {
+		// 随机出题 随机 + - x /
+		Scanner scanner = new Scanner(System.in);
+		Random random = new Random();
+		// 0 代表+ 1 代表- 2 代表x 3代表 /
+		int[] ints = { 0, 1, 2, 3 };
+
+		while (true) {
+			// 随机2位数
+			ExpModel expModel = new ExpModel();
+
+			int first = getNum(random);
+			int second = getNum(random);
+
+			expModel.setFirst(first);
+			expModel.setSecond(second);
+
+			int i = random.nextInt(3);
+
+			switch (1) {
+			case 0:
+				// 加
+				System.out.println(first + " + " + second + "= ");
+				expModel.setOperate(0);
+				// 计算结果
+				String result1 = String.valueOf(first + second);
+
+				String i1 = scanner.next();
+
+				System.out.println("正确答案：" + result1);
+				expModel.setResult(result1);
+				// 保存是否正确
+				expModel.setRight(String.valueOf(result1.equals(i1)));
+				break;
+			case 1:
+				// 减
+				System.out.println(first + " - " + second + "= ");
+				// 设置操作符
+				expModel.setOperate(1);
+				// 计算结果
+				String result2 = String.valueOf(first - second);
+
+				String i2 = scanner.next();
+				System.out.println("正确答案：" + result2);
+
+				expModel.setResult(result2);
+				// 保存是否正确
+				expModel.setRight(String.valueOf(result2.equals(i2)));
+				break;
+			case 2:
+				// 乘
+				System.out.println(first + " * " + second + "= ");
+				expModel.setOperate(2);
+				// 计算结果
+				String result3 = String.valueOf(first * second);
+				String i3 = scanner.next();
+				System.out.println("正确答案：" + result3);
+
+				expModel.setResult(result3);
+				// 保存是否正确
+				expModel.setRight(String.valueOf(result3.equals(i3)));
+				break;
+			case 3:
+				// 除
+				System.out.println(first + " / " + second + "= ");
+				expModel.setOperate(3);
+				String i4 = scanner.next();
+
+				NumberFormat nf = NumberFormat.getNumberInstance();
+				// 保留1位小数
+				nf.setMaximumFractionDigits(1);
+				nf.setRoundingMode(RoundingMode.DOWN);
+
+				String format = nf.format(first / second);
+
+				System.out.println("正确答案：" + format);
+				expModel.setResult(format);
+
+				// 保存是否正确
+				expModel.setRight(String.valueOf(format.equals(i4)));
+				break;
+			}
+
+			ExpDao mapper = session.getMapper(ExpDao.class);
+			expModel.setUserId(login.getId());
+			mapper.insertOne(expModel);
+			session.commit();
+
+			System.out.println("1 继续做题");
+			System.out.println("2 先不做了");
+			Scanner scanner1 = new Scanner(System.in);
+			String next = scanner1.next();
+			if ("1".equals(next)) {
+				continue;
+			} else {
+				break;
+			}
+		}
+	}
+
+	private static int getNum(Random random) {
+		return random.nextInt(99);
+	}
+
+	private static UserModel login() {
+		Scanner scanner = new Scanner(System.in);
+
+		System.out.println("请输入用户名");
+		String userName = scanner.next();
+		System.out.println("请输入密码");
+		String userPwd = scanner.next();
+
+		UserModel userModel = new UserModel();
+		userModel.setUserName(userName);
+		userModel.setUserPwd(userPwd);
+
+		UserDao mapper = session.getMapper(UserDao.class);
+		// ood 查询
+		return mapper.selectOneByUserNameAndPwd(userModel);
+	}
+
+	private static void reg() {
+		Scanner scanner = new Scanner(System.in);
+
+		System.out.println("请输入用户名");
+		String userName = scanner.next();
+		System.out.println("请输入密码");
+		String userPwd = scanner.next();
+
+		// 获取session ood式插入
+		UserDao mapper = session.getMapper(UserDao.class);
+		// ood
+		UserModel userModel = new UserModel();
+		userModel.setUserName(userName);
+		userModel.setUserPwd(userPwd);
+
+		try {
+			mapper.insertOne(userModel);
+			// 事务提交
+			session.commit();
+			System.out.println("注册成功");
+		} catch (Exception e) {
+			System.out.println("注册失败");
+			e.printStackTrace();
+		}
+	}
+
+	public static void runDbSession() {
+		String resource = "mybatis-config.xml";
+
+		Properties prop = new Properties();
+		InputStream inputStream = null;
+		InputStream propInput = null;
+		try {
+			inputStream = Resources.getResourceAsStream(resource);
+
+			SqlSessionFactory sqlSessionFactory = new SqlSessionFactoryBuilder().build(inputStream, prop);
+			session = sqlSessionFactory.openSession();
+
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+	}
+}
